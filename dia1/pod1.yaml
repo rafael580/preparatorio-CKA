@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-avancado
+  labels:
+    app: nginx
+    ambiente: producao
+  annotations:
+    description: "NGINX 1.18.0 com config personalizada e probes"
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1.18.0
+      ports:
+        - containerPort: 80
+      env:
+        - name: VERSAO_NGINX
+          value: "1.18.0"
+      volumeMounts:
+        - name: config-volume
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+      livenessProbe:
+        httpGet:
+          path: /
+          port: 80
+        initialDelaySeconds: 5
+        periodSeconds: 10
+      readinessProbe:
+        httpGet:
+          path: /
+          port: 80
+        initialDelaySeconds: 3
+        periodSeconds: 5
+  volumes:
+    - name: config-volume
+      configMap:
+        name: nginx-config
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+data:
+  nginx.conf: |
+    events {}
+    http {
+      server {
+        listen 80;
+        location / {
+          return 200 'Olá do NGINX 1.18.0!';
+        }
+      }
+    }
+
+
